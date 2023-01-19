@@ -8,6 +8,7 @@
 
 import sys, os, signal
 import time
+import traceback
 from threading import Timer
 import datetime
 
@@ -41,6 +42,8 @@ def main():
         print(now(), "INTERRUPTED!")
     except RuntimeError as e:
         print(now(), "INTERRUPTED! BY USER SIGNAL.")
+        for line in traceback.format_tb(e.__traceback__):
+            print("EXC: {}".format(line.split()))
     if timer.is_alive():
         timer.cancel()
         print(now(), "TIMER CANCELLED.")

@@ -12,7 +12,8 @@
         "path": "/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq",
         "format": "ToInt",
         "expect": "int",
-        "length": 1024
+        "length": 1024,
+        "timeout": 10
       }
     },
     {
@@ -24,7 +25,7 @@
         "path": "/.../",
         "format": "ToInt",
         "expect": "int",
-        "waiting": 10
+        "timeout": 10
       }
     },
     {
@@ -39,7 +40,7 @@
         ],
         "format": null,
         "expect": "string",
-        "waiting": 10
+        "timeout": 10
       }
     }
   ]

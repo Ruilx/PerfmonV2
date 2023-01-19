@@ -6,6 +6,9 @@ Task base class
 
 """
 import abc
+import enum
+import signal
+from threading import Timer
 
 from src import util
 from src.core.expect import Expect
@@ -16,15 +19,22 @@ from src.formats.format import FormatFactory
 class TaskBase(object, metaclass=abc.ABCMeta):
     ValidExceptEnum = ('int', 'intOrNull', 'real', 'realOrNull', 'string', 'stringOrNull', 'null')
 
+    class TimeoutTypeEnum(enum.Enum):
+        KeyboardInterruptType = 0
+        CustomType = 1
+
     def __init__(self, name, config: dict):
         self.name = name
         self.config = config
 
         self.logger = Logger().getLogger(__name__)
 
+        self.timeoutType = TaskBase.TimeoutTypeEnum.KeyboardInterruptType
+
         self.method = util.checkKey("method", config, str, "task")
         self.format = util.checkKey("format", config, (str, list), "task")
         self.expect = util.checkKey("expect", config, str, "task")
+        self.timeout = util.checkKey("timeout", config, float, "task")
 
         try:
             self.wait = util.checkKey("wait", config, str, "task")
@@ -40,11 +50,31 @@ class TaskBase(object, metaclass=abc.ABCMeta):
         self.params = {}
         self.value = None
         self.error = None
+
+        self.timer = None
+
         self._checkProcess()
         self._setup()
 
+        match self.timeoutType:
+            case TaskBase.TimeoutTypeEnum.KeyboardInterruptType:
+                self._setupTimer()
+
     def __del__(self):
+        if isinstance(self.timer, Timer):
+            if self.timer.is_alive():
+                self.timer.cancel()
+                self.logger.debug(f"Task '{self.name}' internal timer stopped.")
         self._join()
+
+    def _setupTimer(self):
+        def _signalEvent(s, var2):
+            if s == signal.SIGINT:
+                raise TimeoutError(f"Task '{self.name}' running time exceeded in {self.timeout} second"
+                                   f"{'s' if self.timeout != 1 else ''}.")
+
+        if not isinstance(self.timer, Timer):
+            self.timer = Timer(self.timeout, _signalEvent)
 
     def getName(self):
         return self.name
@@ -95,17 +125,30 @@ class TaskBase(object, metaclass=abc.ABCMeta):
         self.error = None
         self.params = params
         for attempt in range(self.retry):
+            if isinstance(self.timer, Timer):
+                if self.timer.is_alive():
+                    self.timer.cancel()
+                self.timer.finished.clear()
+            self.timer.run()
             try:
                 self._run(params)
                 self._doFormat()
                 self._doExpect()
                 self.error = None
                 break
+            except TimeoutError as e:
+                self.error = e
+                util.printTraceback(e, self.logger.error)
+                continue
             except BaseException as e:
-                self.logger.error(f"Exception occurred while processing: {e!r}")
+                self.logger.error(f"Task '{self.name}' exception occurred while processing: {e!r}")
                 util.printTraceback(e, self.logger.error)
                 self.error = e
                 continue
+        if isinstance(self.timer, Timer):
+            if self.timer.is_alive():
+                self.timer.cancel()
+                self.logger.debug(f"Task '{self.name}' has a timer cancelled.")
 
     def getValue(self):
         return self.value
