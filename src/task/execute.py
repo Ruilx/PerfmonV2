@@ -53,7 +53,7 @@ class Execute(TaskBase):
             raise ValueError(f"Execute class exec command is empty")
 
     def _setup(self):
-        ...
+        self.timeoutType = Execute.TimeoutTypeEnum.CustomType
 
     def _run(self, params: dict):
         command = [self.exec]

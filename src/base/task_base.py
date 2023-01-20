@@ -8,6 +8,7 @@ Task base class
 import abc
 import enum
 import signal
+import gc
 from threading import Timer
 
 from src import util
@@ -59,6 +60,8 @@ class TaskBase(object, metaclass=abc.ABCMeta):
         match self.timeoutType:
             case TaskBase.TimeoutTypeEnum.KeyboardInterruptType:
                 self._setupTimer()
+            case default:
+                ...
 
     def __del__(self):
         if isinstance(self.timer, Timer):
@@ -66,6 +69,7 @@ class TaskBase(object, metaclass=abc.ABCMeta):
                 self.timer.cancel()
                 self.logger.debug(f"Task '{self.name}' internal timer stopped.")
         self._join()
+        gc.collect()
 
     def _setupTimer(self):
         def _signalEvent(s, var2):
@@ -129,7 +133,7 @@ class TaskBase(object, metaclass=abc.ABCMeta):
                 if self.timer.is_alive():
                     self.timer.cancel()
                 self.timer.finished.clear()
-            self.timer.run()
+                self.timer.run()
             try:
                 self._run(params)
                 self._doFormat()
@@ -149,6 +153,7 @@ class TaskBase(object, metaclass=abc.ABCMeta):
             if self.timer.is_alive():
                 self.timer.cancel()
                 self.logger.debug(f"Task '{self.name}' has a timer cancelled.")
+        gc.collect()
 
     def getValue(self):
         return self.value
