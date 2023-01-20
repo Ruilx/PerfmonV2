@@ -10,10 +10,10 @@ Execute task instance
 @ Ruilx
 
 configs:
-'method': <for TaskBase use> Fixed "execute"
-'format': <for TaskBase use>
-'expect': <for TaskBase use>
-'wait'  : <for TaskBase use>
+'method':  <for TaskBase use> Fixed "execute"
+'format':  <for TaskBase use>
+'expect':  <for TaskBase use>
+'timeout': <for TaskBase use>
 
 'exec'  : command or shell execute (required)
 'params': list for command params (required)

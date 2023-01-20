@@ -9,10 +9,10 @@ ReadFile task instance
 @ Ruilx
 
 configs:
-'method': <for TaskBase use> Fixed: "readfile"
-'format': <for TaskBase use>
-'expect': <for TaskBase use>
-'wait'  : <for TaskBase use>
+'method':  <for TaskBase use> Fixed: "readfile"
+'format':  <for TaskBase use>
+'expect':  <for TaskBase use>
+'timeout': <for TaskBase use>
 
 'path'  : the path to file (required)
 'length': every read length (default: 4096)
