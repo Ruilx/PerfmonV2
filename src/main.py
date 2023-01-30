@@ -11,6 +11,7 @@ import sys, os
 import argparse
 
 from core.agent_config import AgentConfig
+from logger import Logger
 
 
 def argBuilder():
@@ -20,10 +21,17 @@ def argBuilder():
 
 
 def main():
+    logger = Logger().getLogger(__name__)
     args = argBuilder()
     config = AgentConfig(args.config)
     print(config.getAgentName())
     print(config.getReportUrl())
+    process_count = config.getProcessCount()
+    if not process_count:
+        process_count = os.cpu_count()
+        logger.info(f"Worker count is set to '{process_count}' as CPU count.")
+
+    print(process_count)
 
 
 if __name__ == "__main__":

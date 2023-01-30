@@ -26,7 +26,7 @@ class Logger(object):
         formatter = logging.Formatter(
             "[%(asctime)s] %(levelname)s(@%(threadName)s): %(filename)s:%(lineno)s: %(name)s: %(message)s")
         handler1 = logging.StreamHandler(stream=sys.stderr)
-        handler1.setFormatter(self.formatter)
+        handler1.setFormatter(formatter)
         # handler2 = logging.FileHandler(self.name, encoding="utf-8", delay=True)
         # handler2.setFormatter(self.formatter)
         logger.handlers.append(handler1)

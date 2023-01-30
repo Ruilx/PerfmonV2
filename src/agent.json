@@ -1,11 +1,13 @@
 {
   "agent_name": "Tester",
   "report": "http://10.235.165.6:8000/perfmon/post",
+  "process": 4,
   "perfmon": [
     {
       "name": "cpu_0_freq",
       "type": "cpufreq",
       "delay": 60,
+      "priority": 10,
       "wait": 10,
       "tasks": {
         "method": "readfile",

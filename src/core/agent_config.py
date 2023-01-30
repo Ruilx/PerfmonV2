@@ -18,3 +18,6 @@ class AgentConfig(config_base.ConfigBase):
 
     def getPrefmonItems(self):
         return self._findKey("perfmon")
+
+    def getProcessCount(self):
+        return self._findKey("process")

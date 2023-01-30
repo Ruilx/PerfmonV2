@@ -6,6 +6,8 @@ Perfmon sector
 @Ruilx
 """
 import types
+from sched import scheduler as Scheduler
+
 from src import util
 from multiprocessing import Queue
 
@@ -20,15 +22,24 @@ class Perfmon(object):
         self.name = None,
         self.type = None,
         self.delay = None,
+        self.priority = None,
         self.queue = queue
         self.tasks = []
 
+        self._parse_perfmon(config)
+
         self.logger = Logger().getLogger(__name__)
 
-    def _parsePerfmon(self, config: dict):
+    def _parse_perfmon(self, config: dict):
         self.name = util.checkKey("name", config, str, "perfmon")
         self.type = util.checkKey("type", config, str, "perfmon")
-        self.delay = util.checkKey("delay", config, (float, int), "perfmon")
+        self.delay = float(util.checkKey("delay", config, (float, int), "perfmon"))
+
+        try:
+            self.priority = util.checkKey("priority", config, str, "perfmon")
+        except ValueError:
+            self.priority = 10
+
         tasks = util.checkKey("tasks", config, (list, dict), "perfmon")
         if isinstance(tasks, dict):
             self._parse_task(tasks)
@@ -59,7 +70,15 @@ class Perfmon(object):
     def register_task(self, task: TaskBase):
         self.tasks.append(task)
 
-    def run_task(self, params: dict):
+    def register_schedule(self, scheduler: Scheduler):
+        scheduler.enter(self.delay, self.priority, self.run_task, (self.generate_params(),))
+
+    def generate_params(self):
+        return {
+            'datetime': util.now(),
+        }
+
+    def run_task(self, params: dict, scheduler: Scheduler):
         taskCount = len(self.tasks)
         self.logger.debug(f"Perfmon '{self.name}' start running...")
         self.logger.debug(f"Perfmon '{self.name}' has {taskCount} task{'s' if taskCount != 1 else ''}.")
@@ -78,6 +97,8 @@ class Perfmon(object):
         if result is None:
             self.logger.warning(f"Perfmon '{self.name}' returns None result")
         self.submit(result)
+        # reload schedule
+        self.register_schedule(scheduler)
 
     def submit(self, result):
         self.logger.debug(f"Perfmon '{self.name}' result:")
