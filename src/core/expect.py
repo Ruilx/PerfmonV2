@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 
+"""
+Expect class
+预期数据处理类
+"""
+
 class ExpectError(RuntimeError):
     def __init__(self, msg):
         super().__init__(msg)

@@ -11,13 +11,33 @@ class AgentConfig(config_base.ConfigBase):
         assert self.getPrefmonItems(), "Config need 'perfmon' items"
 
     def getAgentName(self):
+        """
+        获得配置文件中Agent名称
+        :return:
+        :rtype: str
+        """
         return self._findKey("agent_name")
 
     def getReportUrl(self):
+        """
+        获得配置文件中报告资源的URL
+        :return:
+        :rtype: str
+        """
         return self._findKey("report")
 
     def getPrefmonItems(self):
+        """
+        获得配置文件Perfmon项目
+        :return:
+        :rtype: dict
+        """
         return self._findKey("perfmon")
 
     def getProcessCount(self):
+        """
+        获得配置文件中指定的进程数
+        :return:
+        :rtype:
+        """
         return self._findKey("process")

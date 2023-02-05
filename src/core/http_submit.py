@@ -6,6 +6,10 @@ from src import util
 from src.base.submit_base import SubmitBase
 from src.core.agent_config import AgentConfig
 
+"""
+HttpSubmit
+通过HTTP提交数据类
+"""
 
 class HttpSubmit(SubmitBase):
     Headers = {
@@ -30,7 +34,7 @@ class HttpSubmit(SubmitBase):
             ))
         return json_t
 
-    def send(self) -> bool:
+    def _send(self) -> bool:
         if len(self.buf) <= 0:
             return False
         errmsg = []
