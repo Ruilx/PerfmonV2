@@ -10,6 +10,7 @@ import signal
 import sys, os
 from multiprocessing import Queue, Process, ProcessError
 
+from src.core.perfmon import Perfmon
 from src.logger import Logger
 
 from src import util
@@ -56,7 +57,8 @@ class ProcessEntity(object):
                         # "perfmon": perfmon name, will find in perfmon list and do task.
                         assert "perfmon" in task
                         perfmon = task['perfmon']
-                        # TODO: ...
+                        assert isinstance(perfmon, Perfmon)
+                        perfmon.run_task(perfmon.generate_params())
             except ProcessFinished:
                 self.logger.info(f"process finished.")
                 break
@@ -97,4 +99,5 @@ class Processing(object):
         self._reset_processes()
         for i in range(self.process_count):
             name = "_".join(("process", str(i)))
+            entity = ProcessEntity
             self.processes[name] = Process(None, )

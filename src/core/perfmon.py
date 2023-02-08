@@ -25,6 +25,7 @@ class Perfmon(object):
         self.priority = None,
         self.queue = queue
         self.tasks = []
+        self.scheduler = None
 
         self._parse_perfmon(config)
 
@@ -71,6 +72,7 @@ class Perfmon(object):
         self.tasks.append(task)
 
     def register_schedule(self, scheduler: Scheduler):
+        self.scheduler = scheduler
         scheduler.enter(self.delay, self.priority, self.run_task, (self.generate_params(),))
 
     def generate_params(self):
@@ -78,7 +80,7 @@ class Perfmon(object):
             'datetime': util.now(),
         }
 
-    def run_task(self, params: dict, scheduler: Scheduler):
+    def run_task(self, params: dict):
         taskCount = len(self.tasks)
         self.logger.debug(f"Perfmon '{self.name}' start running...")
         self.logger.debug(f"Perfmon '{self.name}' has {taskCount} task{'s' if taskCount != 1 else ''}.")
