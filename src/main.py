@@ -7,11 +7,13 @@ Perfmon V2
 
 """
 
-import sys, os
 import argparse
+import os
+import sys
 
 from core.agent_config import AgentConfig
 from logger import Logger
+from src.core.http_submit import HttpSubmit
 
 
 def argBuilder():
@@ -31,7 +33,7 @@ def main():
         process_count = os.cpu_count()
         logger.info(f"Worker count is set to '{process_count}' as CPU count.")
 
-    print(process_count)
+    submit = HttpSubmit(config)
 
 
 if __name__ == "__main__":

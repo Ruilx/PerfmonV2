@@ -11,6 +11,7 @@ HttpSubmit
 通过HTTP提交数据类
 """
 
+
 class HttpSubmit(SubmitBase):
     Headers = {
         'Accept': "application/json;q=0.9;charset=utf-8",

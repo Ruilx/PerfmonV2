@@ -50,7 +50,7 @@ class ProcessEntity(object):
                 match task['cmd']:
                     case "quit":
                         self.running = False
-                        self.logger.info(f"queue task receive quit command, process will exit.")
+                        self.logger.info(f"queue task received quit command, process will exit.")
                         raise ProcessFinished
                     case "task":
                         # task struct:
@@ -60,18 +60,18 @@ class ProcessEntity(object):
                         assert isinstance(perfmon, Perfmon)
                         perfmon.run_task(perfmon.generate_params())
             except ProcessFinished:
-                self.logger.info(f"process finished.")
+                self.logger.info(f"Processing finished.")
                 self.running = False
             except ProcessError as e:
-                self.logger.info(f"process occurred an error: {e!r}")
+                self.logger.error(f"Processing occurred an error: {e!r}")
                 util.printTraceback(e, self.logger.error)
                 self.running = False
             except AssertionError as e:
-                self.logger.info(f"processing has a assertion error: {e!r}")
+                self.logger.error(f"Processing has a assertion error: {e!r}")
                 util.printTraceback(e, self.logger.error)
                 continue
             except BaseException as e:
-                self.logger.info(f"base exception occurred: {e!r}")
+                self.logger.error(f"Processing has a base exception occurred: {e!r}")
                 util.printTraceback(e, self.logger.error)
                 self.running = False
 
@@ -92,7 +92,8 @@ class Processing(object):
 
     def _reset_processes(self):
         if self.processes:
-            for process in self.processes:
+            for name, item in self.processes.items():
+                process = item['process']
                 if isinstance(process, Process):
                     if process.is_alive():
                         process.kill()
@@ -122,3 +123,7 @@ class Processing(object):
                 continue
             item['process'].start()
             self.logger.info(f"Process name '{name}' started.")
+
+    def stop(self):
+        self.logger.info(f"Ready to stop processes...")
+        self._reset_processes()

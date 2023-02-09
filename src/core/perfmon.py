@@ -6,11 +6,10 @@ Perfmon sector
 @Ruilx
 """
 import types
+from multiprocessing import Queue
 from sched import scheduler as Scheduler
 
 from src import util
-from multiprocessing import Queue
-
 from src.base import task_base
 from src.base.task_base import TaskBase
 from src.logger import Logger
@@ -19,10 +18,10 @@ from src.logger import Logger
 class Perfmon(object):
     def __init__(self, agent_name: str, config: dict, queue: Queue):
         self.agent_name = agent_name
-        self.name = None,
-        self.type = None,
-        self.delay = None,
-        self.priority = None,
+        self.name = None
+        self.type = None
+        self.delay = None
+        self.priority = None
         self.queue = queue
         self.tasks = []
         self.scheduler = None
@@ -57,6 +56,10 @@ class Perfmon(object):
                 if "ReadFile" not in g:
                     pass
                 classObj = g['ReadFile']
+            case "execute":
+                if "Execute" not in g:
+                    pass
+                classObj = g['Execute']
             case default:
                 raise ValueError(f"Method '{method}' has no class instance to start with, maybe this version is not "
                                  "supported.")
@@ -71,9 +74,11 @@ class Perfmon(object):
     def register_task(self, task: TaskBase):
         self.tasks.append(task)
 
-    def register_schedule(self, scheduler: Scheduler):
-        self.scheduler = scheduler
-        scheduler.enter(self.delay, self.priority, self.run_task, (self.generate_params(),))
+    def register_schedule(self, scheduler: Scheduler = None):
+        if scheduler is not None:
+            self.scheduler = scheduler
+        if self.scheduler is not None:
+            self.scheduler.enter(self.delay, self.priority, self.run_task, (self.generate_params(),))
 
     def generate_params(self):
         return {
@@ -100,7 +105,7 @@ class Perfmon(object):
             self.logger.warning(f"Perfmon '{self.name}' returns None result")
         self.submit(result)
         # reload schedule
-        self.register_schedule(scheduler)
+        self.register_schedule()
 
     def submit(self, result):
         self.logger.debug(f"Perfmon '{self.name}' result:")
