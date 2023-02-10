@@ -20,11 +20,10 @@ class ProcessFinished(BaseException):
 
 
 class ProcessEntity(object):
-    def __init__(self, queue_in: Queue, queue_out: Queue, name: str):
+    def __init__(self, queue_in: Queue, name: str):
         self.logger = Logger().getLogger(__name__)
         self.name = name
         self.queue_in = queue_in
-        self.queue_out = queue_out
 
         self.running = True
 
@@ -74,14 +73,14 @@ class ProcessEntity(object):
                 self.logger.error(f"Processing has a base exception occurred: {e!r}")
                 util.printTraceback(e, self.logger.error)
                 self.running = False
+        self.logger.info(f"ProcessEntity '{self.name}' leave daemon <------")
 
 
 class Processing(object):
-    def __init__(self, process_count: int, submit_queue: Queue, task_queue_size: int = 50):
+    def __init__(self, process_count: int, task_queue_size: int = 50):
         self.process_count = process_count
         self.processes = {}  # name => {'entity': ProcessEntity, 'process': Process}
         self.queue = Queue(task_queue_size)
-        self.submit_queue = submit_queue
 
         self.logger = Logger().getLogger(__name__)
 
@@ -89,6 +88,9 @@ class Processing(object):
 
     def __del__(self):
         self._reset_processes()
+
+    def get_queue(self):
+        return self.queue
 
     def _reset_processes(self):
         if self.processes:
@@ -102,12 +104,13 @@ class Processing(object):
                     process.close()
             self.processes = {}
             gc.collect()
+        self.logger.debug("Process Reset.")
 
     def _setup_processes(self):
         self._reset_processes()
         for i in range(self.process_count):
             name = "_".join(("process", str(i)))
-            entity = ProcessEntity(self.queue, self.submit_queue, name)
+            entity = ProcessEntity(self.queue, name)
             process = Process(None, entity.daemon, name)
             self.processes[name] = {
                 'entity': entity,
@@ -116,7 +119,7 @@ class Processing(object):
             self.logger.info(f"Process '{name}' has been setup.")
 
     def start(self):
-        self.logger.info(f"Ready to start processes...")
+        self.logger.info("Ready to start processes...")
         for name, item in self.processes.items():
             if not isinstance(item['process'], Process):
                 self.logger.error(f"Process name '{name}' has a non Process instance! Skipped.")
@@ -125,5 +128,5 @@ class Processing(object):
             self.logger.info(f"Process name '{name}' started.")
 
     def stop(self):
-        self.logger.info(f"Ready to stop processes...")
+        self.logger.info("Ready to stop processes...")
         self._reset_processes()
