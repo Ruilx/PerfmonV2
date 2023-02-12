@@ -21,6 +21,7 @@ class AgentConfig(config_base.ConfigBase):
     def getReportUrl(self):
         """
         获得配置文件中报告资源的URL
+        :TODO: 更新结构体
         :return:
         :rtype: str
         """

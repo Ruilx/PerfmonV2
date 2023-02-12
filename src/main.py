@@ -15,7 +15,7 @@ import signal
 
 from core.agent_config import AgentConfig
 from logger import Logger
-from src.core.file_submit import FileSubmit
+from src.submits.file_submit import FileSubmit
 from src.core.submitting import Submitting
 from src.core.scheduler import Scheduler
 from src.core.processing import Processing

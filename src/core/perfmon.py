@@ -54,12 +54,16 @@ class Perfmon(object):
         match method:
             case "readfile":
                 if "ReadFile" not in g:
-                    pass
+                    from src.task.read_file import ReadFile
                 classObj = g['ReadFile']
             case "execute":
                 if "Execute" not in g:
                     pass
                 classObj = g['Execute']
+            case "dummy":
+                if "Dummy" not in g:
+                    pass
+                classObj = g['']
             case default:
                 raise ValueError(f"Method '{method}' has no class instance to start with, maybe this version is not "
                                  "supported.")

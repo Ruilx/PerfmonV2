@@ -1,0 +1,24 @@
+{
+  "agent_name": "Simple",
+  "submit": {
+    "type": "file",
+    "path": "./tmp/simple.log",
+    "format": "JsonEachRow"
+  },
+  "process": 4,
+  "perfmon": [
+    {
+      "name": "helloworld",
+      "type": "stdout",
+      "delay": 10,
+      "priority": 10,
+      "tasks": {
+        "method": "dummy",
+        "text": "Hello, world\n",
+        "format": "ToString",
+        "expect": "string",
+        "timeout": 8
+      }
+    }
+  ]
+}
