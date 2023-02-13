@@ -19,7 +19,7 @@ class FileSubmit(SubmitBase):
     Encoding = "utf-8"
 
     def __init__(self, config: AgentConfig, capacity: int = 20, timeout: float = 10):
-        super(FileSubmit, self).__init__(capacity, timeout)
+        super().__init__(capacity, timeout)
         self.config = config
         self.filepath = self.config.getReportUrl()  # will fix next
 

@@ -5,6 +5,8 @@ Perfmon sector
 
 @Ruilx
 """
+import importlib
+import inspect
 import types
 from multiprocessing import Queue
 from sched import scheduler as Scheduler
@@ -54,20 +56,20 @@ class Perfmon(object):
         match method:
             case "readfile":
                 if "ReadFile" not in g:
-                    from src.task.read_file import ReadFile
+                    g['ReadFile'] = importlib.import_module("src.task.read_file").ReadFile
                 classObj = g['ReadFile']
             case "execute":
                 if "Execute" not in g:
-                    pass
+                    g['Execute'] = importlib.import_module("src.task.execute").Execute
                 classObj = g['Execute']
             case "dummy":
                 if "Dummy" not in g:
-                    pass
-                classObj = g['']
+                    g['Dummy'] = importlib.import_module("src.task.dummy").Dummy
+                classObj = g['Dummy']
             case default:
                 raise ValueError(f"Method '{method}' has no class instance to start with, maybe this version is not "
                                  "supported.")
-        if not isinstance(classObj, types.MethodType):
+        if not inspect.isclass(classObj) or not issubclass(classObj, TaskBase):
             raise RuntimeError(f"Task classobj has no class structure handled.")
 
         try:
@@ -83,6 +85,7 @@ class Perfmon(object):
             self.scheduler = scheduler
         if self.scheduler is not None:
             self.scheduler.enter(self.delay, self.priority, self.run_task, (self.generate_params(),))
+            self.logger.debug(f"QUEUE! = {self.scheduler.queue!r}")
 
     def generate_params(self):
         return {
@@ -107,6 +110,8 @@ class Perfmon(object):
             params['_step'][task.getName()] = r_step
         if result is None:
             self.logger.warning(f"Perfmon '{self.name}' returns None result")
+        if "_step" in result['params']:
+            del result['params']['_step']
         self.submit(result)
         # reload schedule
         self.register_schedule()

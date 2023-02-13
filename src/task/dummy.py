@@ -16,17 +16,16 @@ configs:
 'text': returning text (required)
 """
 
+
 class Dummy(TaskBase):
     def __init__(self, name: str, config: dict):
-        if self.method != "dummy":
-            raise TypeError(f"Dummy class need a dummy-type config, but find '{self.method}' type.")
-
         self.text = util.checkKey("text", config, str, "config")
 
         super().__init__(name, config)
 
     def _checkProcess(self):
-        ...
+        if self.method != "dummy":
+            raise TypeError(f"Dummy class need a dummy-type config, but find '{self.method}' type.")
 
     def _setup(self):
         ...

@@ -33,9 +33,9 @@ class TaskBase(object, metaclass=abc.ABCMeta):
         self.timeoutType = TaskBase.TimeoutTypeEnum.KeyboardInterruptType
 
         self.method = util.checkKey("method", config, str, "task")
-        self.format = util.checkKey("format", config, (str, list), "task")
+        self.format = util.checkKey("format", config, (str, list), "task", canBeNone=True)
         self.expect = util.checkKey("expect", config, str, "task")
-        self.timeout = util.checkKey("timeout", config, float, "task")
+        self.timeout = util.checkKey("timeout", config, (float, int), "task")
 
         try:
             self.wait = util.checkKey("wait", config, str, "task")
@@ -77,8 +77,12 @@ class TaskBase(object, metaclass=abc.ABCMeta):
                 raise TimeoutError(f"Task '{self.name}' running time exceeded in {self.timeout} second"
                                    f"{'s' if self.timeout != 1 else ''}.")
 
+        def _timerEvent():
+            self.logger.debug(f"Task '{self.name}' reached timeout.")
+            signal.raise_signal(signal.SIGINT)
+
         if not isinstance(self.timer, Timer):
-            self.timer = Timer(self.timeout, _signalEvent)
+            self.timer = Timer(self.timeout, _timerEvent)
 
     def getName(self):
         return self.name
@@ -89,6 +93,7 @@ class TaskBase(object, metaclass=abc.ABCMeta):
         :return:
         :rtype:
         """
+
         def __doFormat(cur):
             if isinstance(cur, str):
                 return FormatFactory()[cur](self.value)
@@ -133,7 +138,7 @@ class TaskBase(object, metaclass=abc.ABCMeta):
                 if self.timer.is_alive():
                     self.timer.cancel()
                 self.timer.finished.clear()
-                self.timer.run()
+                self.timer.start()
             try:
                 self._run(params)
                 self._doFormat()
@@ -169,6 +174,7 @@ class TaskBase(object, metaclass=abc.ABCMeta):
             'except': self.expect,
             'value': self.value,
             'errno': 0 if self.error is None else 1,
-            'error': "{}: {}".format(self.error.__class__.__name__, self.error.__repr__()) if isinstance(self.error, BaseException) else "",
+            'error': "{}: {}".format(self.error.__class__.__name__, self.error.__repr__()) if isinstance(self.error,
+                                                                                                         BaseException) else "",
             'timestamp': util.timestamp(),
         }

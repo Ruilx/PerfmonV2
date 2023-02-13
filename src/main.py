@@ -15,11 +15,12 @@ import signal
 
 from core.agent_config import AgentConfig
 from logger import Logger
-from src.submits.file_submit import FileSubmit
+from src import util
 from src.core.submitting import Submitting
 from src.core.scheduler import Scheduler
 from src.core.processing import Processing
 from src.core.perfmon import Perfmon
+from src.submits.print_submit import PrintSubmit
 
 
 def argBuilder():
@@ -40,7 +41,7 @@ def main():
         logger.info(f"Worker count is set to '{process_count}' as CPU count.")
 
     submitting = Submitting(1)
-    submit = FileSubmit(config)
+    submit = PrintSubmit(config)
     submitting.register_submit(submit)
 
     scheduler = Scheduler()
@@ -68,7 +69,14 @@ def main():
         perfmon = Perfmon(config.getAgentName(), item, submitting.get_queue())
         scheduler.register_scheduler(perfmon)
 
-    scheduler.start()
+    try:
+        scheduler.start()
+    except BaseException as e:
+        logger.error(f"BaseException: {e!r}")
+        util.printTraceback(e, logger.error)
+    finally:
+        processing.stop()
+        submitting.stop()
 
     logger.info("Stopped, bye.")
 

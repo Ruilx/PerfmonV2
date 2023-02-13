@@ -26,17 +26,14 @@ configs:
 
 class ReadFile(TaskBase):
     def __init__(self, name: str, config: dict):
-        if self.method != "readfile":
-            raise TypeError(f"ReadFile class need a readfile-type config, but find '{self.method}' type")
-
         self.path = Path(util.checkKey("path", config, str, "config"))
 
         try:
             self.length = util.checkKey("length", config, int, "config")
-        except ValueError as e:
+        except ValueError:
             self.length = 4096
         if self.length <= 0:
-            raise ValueError(f"'readfile' task length cannot be zero or negative like '{length}'")
+            raise ValueError(f"'readfile' task length cannot be zero or negative like '{self.length}'")
 
         try:
             self.close = util.checkKey("close", config, str, "config")
@@ -48,6 +45,9 @@ class ReadFile(TaskBase):
         self.fd = None
 
     def _checkProcess(self):
+        if self.method != "readfile":
+            raise TypeError(f"ReadFile class need a readfile-type config, but find '{self.method}' type")
+
         if not self.path.is_absolute():
             raise ValueError(f"Readfile class file path '{self.path!r}' need a absolute path.")
 

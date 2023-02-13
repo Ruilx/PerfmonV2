@@ -25,9 +25,6 @@ class Execute(TaskBase):
     ProgramExitCode_OK = 0
 
     def __init__(self, name: str, config: dict):
-        if self.method != "execute":
-            raise TypeError(f"Execute class need a execute-type config, but find '{self.method}' type")
-
         self.exec = util.checkKey("exec", config, str, "config")
         self.params = util.checkKey("params", config, (list, tuple), "config")
 
@@ -49,6 +46,8 @@ class Execute(TaskBase):
         self.status_code = None
 
     def _checkProcess(self):
+        if self.method != "execute":
+            raise TypeError(f"Execute class need a execute-type config, but find '{self.method}' type")
         if not exec:
             raise ValueError(f"Execute class exec command is empty")
 
@@ -58,7 +57,8 @@ class Execute(TaskBase):
     def _run(self, params: dict):
         command = [self.exec]
         command.extend(self.params)
-        self.program = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf-8")
+        self.program = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                        encoding="utf-8")
         if not self.program.stdin.closed:
             if self.stdin:
                 self.program.stdin.write(self.stdin)

@@ -69,6 +69,10 @@ class ProcessEntity(object):
                 self.logger.error(f"Processing has a assertion error: {e!r}")
                 util.printTraceback(e, self.logger.error)
                 continue
+            except KeyboardInterrupt:
+                self.logger.error("Processing has a keyboard interrupt")
+                self.running = False
+                self.queue_in.put({'cmd': 'quit'})
             except BaseException as e:
                 self.logger.error(f"Processing has a base exception occurred: {e!r}")
                 util.printTraceback(e, self.logger.error)
@@ -102,6 +106,7 @@ class Processing(object):
                         process.terminate()
                     process.join()
                     process.close()
+                    self.logger.debug(f"Process '{process.name}' terminated.")
             self.processes = {}
             gc.collect()
         self.logger.debug("Process Reset.")

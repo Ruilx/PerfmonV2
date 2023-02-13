@@ -3,7 +3,7 @@
 import logging
 import sys
 
-from util import singleton
+from src.util import singleton
 
 
 @singleton

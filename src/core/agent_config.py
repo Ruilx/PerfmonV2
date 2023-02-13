@@ -7,7 +7,7 @@ class AgentConfig(config_base.ConfigBase):
     def __init__(self, filePath):
         super().__init__(filePath)
         assert self.getAgentName(), "Config need 'agent_name' key"
-        assert self.getReportUrl(), "Config need 'report' key"
+        # assert self.getReportUrl(), "Config need 'report' key"
         assert self.getPrefmonItems(), "Config need 'perfmon' items"
 
     def getAgentName(self):
@@ -26,6 +26,9 @@ class AgentConfig(config_base.ConfigBase):
         :rtype: str
         """
         return self._findKey("report")
+
+    def getSubmitConfig(self):
+        return self._findKey("submit")
 
     def getPrefmonItems(self):
         """

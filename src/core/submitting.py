@@ -105,7 +105,10 @@ class Submitting(object):
                     if thread.is_alive():
                         if isinstance(entity, SubmitEntity):
                             entity.set_running(False)
+                        self.logger.info(f"Thread '{thread.name}' joining...")
+                        self.queue.put({'cmd': "quit"})
                         thread.join()
+                        self.logger.info(f"Thread '{thread.name}' joined.")
             self.submit_threads = {}
             gc.collect()
         self.logger.debug("Threads Reset.")

@@ -8,8 +8,10 @@ from urllib3.util import parse_url
 from typing import Callable
 
 
-def checkKey(key: str, cfg: dict, typ, cfgName: str):
+def checkKey(key: str, cfg: dict, typ, cfgName: str, canBeNone: bool = False):
     if key in cfg:
+        if canBeNone and cfg[key] is None:
+            return None
         if not isinstance(cfg[key], typ):
             raise ValueError(
                 f"Given '{cfgName if cfgName else 'config'}' item need key named '{key}' with type '{typ.__name__}' but got '{type(cfg[key])}.'")

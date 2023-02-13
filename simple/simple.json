@@ -1,11 +1,11 @@
 {
   "agent_name": "Simple",
   "submit": {
-    "type": "file",
-    "path": "./tmp/simple.log",
+    "type": "print",
+    "device": "stdout",
     "format": "JsonEachRow"
   },
-  "process": 4,
+  "process": 1,
   "perfmon": [
     {
       "name": "helloworld",
@@ -14,8 +14,8 @@
       "priority": 10,
       "tasks": {
         "method": "dummy",
-        "text": "Hello, world\n",
-        "format": "ToString",
+        "text": "Hello, world",
+        "format": null,
         "expect": "string",
         "timeout": 8
       }
