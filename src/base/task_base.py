@@ -59,6 +59,7 @@ class TaskBase(object, metaclass=abc.ABCMeta):
 
         match self.timeoutType:
             case TaskBase.TimeoutTypeEnum.KeyboardInterruptType:
+                self._setupSignal()
                 self._setupTimer()
             case default:
                 ...
@@ -71,18 +72,21 @@ class TaskBase(object, metaclass=abc.ABCMeta):
         self._join()
         gc.collect()
 
-    def _setupTimer(self):
+    def _setupSignal(self):
         def _signalEvent(s, var2):
             if s == signal.SIGINT:
                 raise TimeoutError(f"Task '{self.name}' running time exceeded in {self.timeout} second"
                                    f"{'s' if self.timeout != 1 else ''}.")
 
-        def _timerEvent():
-            self.logger.debug(f"Task '{self.name}' reached timeout.")
-            signal.raise_signal(signal.SIGINT)
+        signal.signal(signal.SIGINT, _signalEvent)
 
-        if not isinstance(self.timer, Timer):
-            self.timer = Timer(self.timeout, _timerEvent)
+    def _timerEvent(self):
+        self.logger.debug(f"Task '{self.name}' reached timeout.")
+        signal.raise_signal(signal.SIGINT)
+
+    def _setupTimer(self):
+        if not isinstance(self.timer, Timer) or not self.timer.is_alive():
+            self.timer = Timer(self.timeout, self._timerEvent)
 
     def getName(self):
         return self.name
@@ -137,7 +141,9 @@ class TaskBase(object, metaclass=abc.ABCMeta):
             if isinstance(self.timer, Timer):
                 if self.timer.is_alive():
                     self.timer.cancel()
-                self.timer.finished.clear()
+                    self.timer.join()
+                self.logger.debug(f"Task '{self.name}' timer rebuild.")
+                self._setupTimer()
                 self.timer.start()
             try:
                 self._run(params)
@@ -157,6 +163,7 @@ class TaskBase(object, metaclass=abc.ABCMeta):
         if isinstance(self.timer, Timer):
             if self.timer.is_alive():
                 self.timer.cancel()
+                self.timer.join()
                 self.logger.debug(f"Task '{self.name}' has a timer cancelled.")
         gc.collect()
 

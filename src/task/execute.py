@@ -67,7 +67,7 @@ class Execute(TaskBase):
             self.logger.warning("program STDIN closed, stdin data not send to program.")
 
         try:
-            self.program.wait(timeout=self.wait)
+            self.program.wait(timeout=self.timeout)
         except subprocess.TimeoutExpired:
             self.program.terminate()
             self.program.kill()
