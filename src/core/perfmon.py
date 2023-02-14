@@ -18,6 +18,12 @@ from src.logger import Logger
 
 
 class Perfmon(object):
+    MethodTable = {
+        'readfile': ("ReadFile", "src.task.read_file", "Readfile"),
+        'execute':  ("Execute", "src.task.execute", "Execute"),
+        'dummy':    ("Dummy", "src.task.dummy", "Dummy"),
+    }
+
     def __init__(self, agent_name: str, config: dict, queue: Queue):
         self.agent_name = agent_name
         self.name = None
@@ -52,23 +58,14 @@ class Perfmon(object):
     def _parse_task(self, task: dict):
         method = util.checkKey("method", task, str, "task")
         g = globals()
-        classObj = None
-        match method:
-            case "readfile":
-                if "ReadFile" not in g:
-                    g['ReadFile'] = importlib.import_module("src.task.read_file").ReadFile
-                classObj = g['ReadFile']
-            case "execute":
-                if "Execute" not in g:
-                    g['Execute'] = importlib.import_module("src.task.execute").Execute
-                classObj = g['Execute']
-            case "dummy":
-                if "Dummy" not in g:
-                    g['Dummy'] = importlib.import_module("src.task.dummy").Dummy
-                classObj = g['Dummy']
-            case default:
-                raise ValueError(f"Method '{method}' has no class instance to start with, maybe this version is not "
-                                 "supported.")
+        if method not in Perfmon.MethodTable:
+            raise ValueError(f"Method '{method}' has no class task instance, maybe this method is not supported.")
+        (global_var, module_path, class_name) = Perfmon.MethodTable[method]
+        if global_var not in g:
+            # g[global_var] = importlib.import_module(module_path).__getattr__(class_name)
+            g[global_var] = __import__(module_path, globals(), locals(), (class_name, ))
+        classObj = g[global_var]
+
         if not inspect.isclass(classObj) or not issubclass(classObj, TaskBase):
             raise RuntimeError(f"Task classobj has no class structure handled.")
 
