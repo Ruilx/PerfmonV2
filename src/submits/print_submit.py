@@ -45,3 +45,4 @@ class PrintSubmit(SubmitBase):
         for item in self.buf:
             self.print_func(item)
         self.logger.debug(f"data has been write, total: {count} line{'s' if count != 1 else ''}.")
+        return True

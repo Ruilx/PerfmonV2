@@ -5,9 +5,9 @@ Submit base class
 """
 import abc
 import threading
-from multiprocessing import Queue
 
 from src import util
+from src.core.reentrant_timer import ReentrantTimer
 from src.logger import Logger
 
 
@@ -19,9 +19,14 @@ class SubmitBase(object, metaclass=abc.ABCMeta):
         self.mutex = threading.Lock()
         self.submit_mutex = threading.Lock()
 
-        self.timer = threading.Timer(self.timeout, self._timerEvent)
+        # self.timer = threading.Timer(self.timeout, self._timerEvent)
+        self.timer = ReentrantTimer(self.timeout, self._timerEvent)
 
         self.logger = Logger().getLogger(__name__)
+
+    def __del__(self):
+        if isinstance(self.timer, ReentrantTimer) and self.timer.is_alive():
+            self.timer.cancel()
 
     @abc.abstractmethod
     def _send(self) -> bool:
@@ -51,25 +56,25 @@ class SubmitBase(object, metaclass=abc.ABCMeta):
         self.doSend()
 
     def timerStop(self):
-        if self.timer.is_alive():
-            self.timer.cancel()
-            self.timer.finished.clear()
-            self.timer.join()
+        if self.timer.is_active():
+            self.timer.stop_timer()
             self.logger.debug("Submit timer stopped")
 
     def timerStart(self):
-        if not self.timer.is_alive():
+        if not self.timer.is_active():
             self.logger.debug("Submit timer start")
-            self.timer.run()
+            self.timer.start_timer()
             self.logger.debug("SUBMIT TIMER START <POST>")
 
     def submit(self, data: dict):
         self.submit_mutex.acquire()
-        if "submit_time" not in data:
-            data['submit_time'] = util.now()
-        self.logger.debug("SUBMIT BUFFER APPEND.")
-        self.buf.append(data)
-        self.timerStop()
-        self._checkBuf()
-        self.timerStart()
-        self.submit_mutex.release()
+        try:
+            if "submit_time" not in data:
+                data['submit_time'] = util.now()
+            self.logger.debug("SUBMIT BUFFER APPEND.")
+            self.buf.append(data)
+            self.timerStop()
+            self._checkBuf()
+            self.timerStart()
+        finally:
+            self.submit_mutex.release()
