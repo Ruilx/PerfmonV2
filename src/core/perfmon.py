@@ -85,7 +85,6 @@ class Perfmon(object):
             self.scheduler = scheduler
         if self.scheduler is not None:
             self.scheduler.enter(self.delay, self.priority, self.run_task, (self.generate_params(),))
-            self.logger.debug(f"QUEUE! = {self.scheduler.queue!r}")
 
     def generate_params(self):
         return {

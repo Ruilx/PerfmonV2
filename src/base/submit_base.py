@@ -64,14 +64,12 @@ class SubmitBase(object, metaclass=abc.ABCMeta):
         if not self.timer.is_active():
             self.logger.debug("Submit timer start")
             self.timer.start_timer()
-            self.logger.debug("SUBMIT TIMER START <POST>")
 
     def submit(self, data: dict):
         self.submit_mutex.acquire()
         try:
             if "submit_time" not in data:
                 data['submit_time'] = util.now()
-            self.logger.debug("SUBMIT BUFFER APPEND.")
             self.buf.append(data)
             self.timerStop()
             self._checkBuf()
