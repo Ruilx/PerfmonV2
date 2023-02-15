@@ -15,6 +15,7 @@ from src import util
 from src.core.expect import Expect
 from src.logger import Logger
 from src.formats.format import FormatFactory
+from src.core.reentrant_timer import ReentrantTimer
 
 
 class TaskBase(object, metaclass=abc.ABCMeta):
@@ -65,10 +66,14 @@ class TaskBase(object, metaclass=abc.ABCMeta):
                 ...
 
     def __del__(self):
-        if isinstance(self.timer, Timer):
+        # if isinstance(self.timer, Timer):
+        #     if self.timer.is_alive():
+        #         self.timer.cancel()
+        #         self.logger.debug(f"Task '{self.name}' internal timer stopped.")
+        if isinstance(self.timer, ReentrantTimer):
             if self.timer.is_alive():
                 self.timer.cancel()
-                self.logger.debug(f"Task '{self.name}' internal timer stopped.")
+                self.logger.debug(f"Task '{self.name}' internal timer deconstructed.")
         self._join()
         gc.collect()
 
@@ -84,9 +89,13 @@ class TaskBase(object, metaclass=abc.ABCMeta):
         self.logger.debug(f"Task '{self.name}' reached timeout.")
         signal.raise_signal(signal.SIGINT)
 
+    # def _setupTimer(self):
+    #     if not isinstance(self.timer, Timer) or not self.timer.is_alive():
+    #         self.timer = Timer(self.timeout, self._timerEvent)
+
     def _setupTimer(self):
-        if not isinstance(self.timer, Timer) or not self.timer.is_alive():
-            self.timer = Timer(self.timeout, self._timerEvent)
+        if not isinstance(self.timer, ReentrantTimer):
+            self.timer = ReentrantTimer(self.timeout, self._timerEvent)
 
     def getName(self):
         return self.name
@@ -138,13 +147,17 @@ class TaskBase(object, metaclass=abc.ABCMeta):
         self.error = None
         self.params = params
         for attempt in range(self.retry):
-            if isinstance(self.timer, Timer):
-                if self.timer.is_alive():
-                    self.timer.cancel()
-                    self.timer.join()
-                self.logger.debug(f"Task '{self.name}' timer rebuild.")
-                self._setupTimer()
-                self.timer.start()
+            # if isinstance(self.timer, Timer):
+            #     if self.timer.is_alive():
+            #         self.timer.cancel()
+            #         self.timer.join()
+            #     self.logger.debug(f"Task '{self.name}' timer rebuild.")
+            #     self._setupTimer()
+            #     self.timer.start()
+            if isinstance(self.timer, ReentrantTimer):
+                if self.timer.is_active():
+                    self.timer.stop_timer()
+                self.timer.start_timer()
             try:
                 self._run(params)
                 self._doFormat()
@@ -160,11 +173,14 @@ class TaskBase(object, metaclass=abc.ABCMeta):
                 util.printTraceback(e, self.logger.error)
                 self.error = e
                 continue
-        if isinstance(self.timer, Timer):
-            if self.timer.is_alive():
-                self.timer.cancel()
-                self.timer.join()
-                self.logger.debug(f"Task '{self.name}' has a timer cancelled.")
+        # if isinstance(self.timer, Timer):
+        #     if self.timer.is_alive():
+        #         self.timer.cancel()
+        #         self.timer.join()
+        #         self.logger.debug(f"Task '{self.name}' has a timer cancelled.")
+        if isinstance(self.timer, ReentrantTimer):
+            if self.timer.is_active():
+                self.timer.stop_timer()
         gc.collect()
 
     def getValue(self):

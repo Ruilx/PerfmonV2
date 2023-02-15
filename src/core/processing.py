@@ -92,6 +92,10 @@ class Processing(object):
 
     def __del__(self):
         self._reset_processes()
+        self.logger.debug(f"PROCESS QUEUE JOINING...")
+        self.queue.close()
+        self.queue.join_thread()
+        self.logger.debug(f"PROCESS QUEUE JOINED.")
 
     def get_queue(self):
         return self.queue

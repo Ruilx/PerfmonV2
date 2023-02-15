@@ -19,14 +19,16 @@ class SubmitBase(object, metaclass=abc.ABCMeta):
         self.mutex = threading.Lock()
         self.submit_mutex = threading.Lock()
 
-        # self.timer = threading.Timer(self.timeout, self._timerEvent)
         self.timer = ReentrantTimer(self.timeout, self._timerEvent)
 
         self.logger = Logger().getLogger(__name__)
 
     def __del__(self):
-        if isinstance(self.timer, ReentrantTimer) and self.timer.is_alive():
-            self.timer.cancel()
+        if isinstance(self.timer, ReentrantTimer):
+            if self.timer.is_alive():
+                self.timer.cancel()
+                self.timer.join()
+            self.logger.debug("Submit TIMER JOINED. Alive? ", self.timer.is_alive())
 
     @abc.abstractmethod
     def _send(self) -> bool:
@@ -47,13 +49,17 @@ class SubmitBase(object, metaclass=abc.ABCMeta):
 
     def _checkBuf(self):
         if len(self.buf) >= self.capacity:
+            self.logger.debug("Submit check buf: DO SEND.")
             self.doSend()
+            self.logger.debug("Submit check buf: DO SEND. <AFTER>")
 
     def _timerEvent(self):
         if len(self.buf) == 0:
             self.logger.debug("Submit timer trigger with no buffer data")
             return
+        self.logger.debug("Submit timer event: DO SEND.")
         self.doSend()
+        self.logger.debug("Submit timer event: DO SEND. <AFTER>")
 
     def timerStop(self):
         if self.timer.is_active():
@@ -66,7 +72,9 @@ class SubmitBase(object, metaclass=abc.ABCMeta):
             self.timer.start_timer()
 
     def submit(self, data: dict):
+        self.logger.debug("Submit MUTEX Acquiring...")
         self.submit_mutex.acquire()
+        self.logger.debug("Submit MUTEX Acquired")
         try:
             if "submit_time" not in data:
                 data['submit_time'] = util.now()
@@ -76,3 +84,5 @@ class SubmitBase(object, metaclass=abc.ABCMeta):
             self.timerStart()
         finally:
             self.submit_mutex.release()
+            self.logger.debug("Submit MUTEX Released")
+        self.logger.debug("Submit end.")

@@ -19,6 +19,19 @@
         "expect": "string",
         "timeout": 8
       }
+    },
+    {
+      "name": "test_message",
+      "type": "stderr",
+      "delay": 8,
+      "priority": 10,
+      "tasks": {
+        "method": "dummy",
+        "text": "Second text",
+        "format": null,
+        "expect": "string",
+        "timeout": 6
+      }
     }
   ]
 }

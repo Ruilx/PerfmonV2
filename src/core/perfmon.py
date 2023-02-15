@@ -20,8 +20,8 @@ from src.logger import Logger
 class Perfmon(object):
     MethodTable = {
         'readfile': ("ReadFile", "src.task.read_file", "Readfile"),
-        'execute':  ("Execute", "src.task.execute", "Execute"),
-        'dummy':    ("Dummy", "src.task.dummy", "Dummy"),
+        'execute': ("Execute", "src.task.execute", "Execute"),
+        'dummy': ("Dummy", "src.task.dummy", "Dummy"),
     }
 
     def __init__(self, agent_name: str, config: dict, queue: Queue):
@@ -62,8 +62,7 @@ class Perfmon(object):
             raise ValueError(f"Method '{method}' has no class task instance, maybe this method is not supported.")
         (global_var, module_path, class_name) = Perfmon.MethodTable[method]
         if global_var not in g:
-            # g[global_var] = importlib.import_module(module_path).__getattr__(class_name)
-            g[global_var] = __import__(module_path, globals(), locals(), (class_name, ))
+            g[global_var] = getattr(importlib.import_module(module_path), class_name)
         classObj = g[global_var]
 
         if not inspect.isclass(classObj) or not issubclass(classObj, TaskBase):

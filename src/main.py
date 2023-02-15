@@ -12,6 +12,7 @@ import os
 import platform
 import sys
 import signal
+import threading
 
 from core.agent_config import AgentConfig
 from logger import Logger
@@ -62,19 +63,19 @@ def main():
     if platform.system() != 'Windows':
         signal.signal(signal.SIGKILL, signal_handle)
 
-    submitting.start()
-    processing.start()
-
     for item in config.getPrefmonItems():
         perfmon = Perfmon(config.getAgentName(), item, submitting.get_queue())
         scheduler.register_scheduler(perfmon)
 
     try:
+        submitting.start()
+        processing.start()
         scheduler.start()
     except BaseException as e:
         logger.error(f"BaseException: {e!r}")
         util.printTraceback(e, logger.error)
     finally:
+        scheduler.stop()
         processing.stop()
         submitting.stop()
 
@@ -83,3 +84,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+    print("Active count: ", threading.active_count())
