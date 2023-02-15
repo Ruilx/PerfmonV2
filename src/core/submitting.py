@@ -90,11 +90,6 @@ class Submitting(object):
         self.queue.close()
         self.queue.join_thread()
         self.logger.debug("SUBMIT QUEUE JOINED.")
-        for submitter in self.submitters:
-            if isinstance(submitter, SubmitBase):
-                self.logger.debug(f"SUBMIT BASE INSTANCE: '{submitter.__name__}' will delete...")
-                del submitter
-                self.logger.debug("SUBMIT BASE INSTANCE deleted.")
 
     def get_queue(self):
         return self.queue

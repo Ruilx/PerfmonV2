@@ -51,8 +51,6 @@ def main():
 
     def signal_handle(sig, _):
         signals = [signal.SIGINT, signal.SIGTERM]
-        if platform.system() != 'Windows':
-            signals.append(signal.SIGKILL)
         if sig in signals:
             scheduler.stop()
             processing.stop()
@@ -60,8 +58,6 @@ def main():
 
     signal.signal(signal.SIGINT, signal_handle)
     signal.signal(signal.SIGTERM, signal_handle)
-    if platform.system() != 'Windows':
-        signal.signal(signal.SIGKILL, signal_handle)
 
     for item in config.getPrefmonItems():
         perfmon = Perfmon(config.getAgentName(), item, submitting.get_queue())

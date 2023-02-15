@@ -108,7 +108,7 @@ class Processing(object):
                     if process.is_alive():
                         process.kill()
                         process.terminate()
-                    process.join()
+                        process.join()
                     process.close()
                     self.logger.debug(f"Process '{process.name}' terminated.")
             self.processes = {}

@@ -9,7 +9,6 @@ import abc
 import enum
 import signal
 import gc
-from threading import Timer
 
 from src import util
 from src.core.expect import Expect
@@ -39,11 +38,6 @@ class TaskBase(object, metaclass=abc.ABCMeta):
         self.timeout = util.checkKey("timeout", config, (float, int), "task")
 
         try:
-            self.wait = util.checkKey("wait", config, str, "task")
-        except ValueError:
-            self.wait = 10
-
-        try:
             self.retry = util.checkKey("retry", config, int, "task")
         except ValueError:
             self.retry = 3
@@ -58,6 +52,8 @@ class TaskBase(object, metaclass=abc.ABCMeta):
         self._checkProcess()
         self._setup()
 
+        self.timer_interrupt = False
+
         match self.timeoutType:
             case TaskBase.TimeoutTypeEnum.KeyboardInterruptType:
                 self._setupSignal()
@@ -66,10 +62,6 @@ class TaskBase(object, metaclass=abc.ABCMeta):
                 ...
 
     def __del__(self):
-        # if isinstance(self.timer, Timer):
-        #     if self.timer.is_alive():
-        #         self.timer.cancel()
-        #         self.logger.debug(f"Task '{self.name}' internal timer stopped.")
         if isinstance(self.timer, ReentrantTimer):
             if self.timer.is_alive():
                 self.timer.cancel()
@@ -80,18 +72,17 @@ class TaskBase(object, metaclass=abc.ABCMeta):
     def _setupSignal(self):
         def _signalEvent(s, var2):
             if s == signal.SIGINT:
-                raise TimeoutError(f"Task '{self.name}' running time exceeded in {self.timeout} second"
-                                   f"{'s' if self.timeout != 1 else ''}.")
+                if self.timer_interrupt:
+                    self.timer_interrupt = False
+                    raise TimeoutError(f"Task '{self.name}' running time exceeded in {self.timeout} second"
+                                       f"{'s' if self.timeout != 1 else ''}.")
 
         signal.signal(signal.SIGINT, _signalEvent)
 
     def _timerEvent(self):
         self.logger.debug(f"Task '{self.name}' reached timeout.")
+        self.timer_interrupt = True
         signal.raise_signal(signal.SIGINT)
-
-    # def _setupTimer(self):
-    #     if not isinstance(self.timer, Timer) or not self.timer.is_alive():
-    #         self.timer = Timer(self.timeout, self._timerEvent)
 
     def _setupTimer(self):
         if not isinstance(self.timer, ReentrantTimer):
@@ -147,13 +138,6 @@ class TaskBase(object, metaclass=abc.ABCMeta):
         self.error = None
         self.params = params
         for attempt in range(self.retry):
-            # if isinstance(self.timer, Timer):
-            #     if self.timer.is_alive():
-            #         self.timer.cancel()
-            #         self.timer.join()
-            #     self.logger.debug(f"Task '{self.name}' timer rebuild.")
-            #     self._setupTimer()
-            #     self.timer.start()
             if isinstance(self.timer, ReentrantTimer):
                 if self.timer.is_active():
                     self.timer.stop_timer()
@@ -173,11 +157,6 @@ class TaskBase(object, metaclass=abc.ABCMeta):
                 util.printTraceback(e, self.logger.error)
                 self.error = e
                 continue
-        # if isinstance(self.timer, Timer):
-        #     if self.timer.is_alive():
-        #         self.timer.cancel()
-        #         self.timer.join()
-        #         self.logger.debug(f"Task '{self.name}' has a timer cancelled.")
         if isinstance(self.timer, ReentrantTimer):
             if self.timer.is_active():
                 self.timer.stop_timer()
