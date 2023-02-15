@@ -76,6 +76,8 @@ class TaskBase(object, metaclass=abc.ABCMeta):
                     self.timer_interrupt = False
                     raise TimeoutError(f"Task '{self.name}' running time exceeded in {self.timeout} second"
                                        f"{'s' if self.timeout != 1 else ''}.")
+                else:
+                    raise KeyboardInterrupt
 
         signal.signal(signal.SIGINT, _signalEvent)
 
