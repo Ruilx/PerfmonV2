@@ -12,7 +12,7 @@ from src.logger import Logger
 
 
 class SubmitBase(object, metaclass=abc.ABCMeta):
-    def __init__(self, capacity: int = 20, timeout: float = 10.0, queue_capacity=20):
+    def __init__(self, capacity: int = 20, timeout: float = 10.0):
         self.capacity = capacity
         self.timeout = timeout
         self.buf = []
@@ -24,11 +24,18 @@ class SubmitBase(object, metaclass=abc.ABCMeta):
         self.logger = Logger().getLogger(__name__)
 
     def __del__(self):
+        self.reset()
+
+    def reset(self):
         if isinstance(self.timer, ReentrantTimer):
             if self.timer.is_alive():
                 self.timer.cancel()
                 self.timer.join()
-            self.logger.debug("Submit TIMER JOINED. Alive? ", self.timer.is_alive())
+                if self.buf:
+                    length = len(self.buf)
+                    self.logger.info(f"Submit buf still has '{length}' result{'s' if length != 1 else ''}, sending...")
+                    self.doSend()
+                    self.logger.info(f"Submit sent '{length}' result{'s' if length != 1 else ''}")
 
     @abc.abstractmethod
     def _send(self) -> bool:
@@ -49,32 +56,24 @@ class SubmitBase(object, metaclass=abc.ABCMeta):
 
     def _checkBuf(self):
         if len(self.buf) >= self.capacity:
-            self.logger.debug("Submit check buf: DO SEND.")
             self.doSend()
-            self.logger.debug("Submit check buf: DO SEND. <AFTER>")
 
     def _timerEvent(self):
         if len(self.buf) == 0:
             self.logger.debug("Submit timer trigger with no buffer data")
             return
-        self.logger.debug("Submit timer event: DO SEND.")
         self.doSend()
-        self.logger.debug("Submit timer event: DO SEND. <AFTER>")
 
     def timerStop(self):
         if self.timer.is_active():
             self.timer.stop_timer()
-            self.logger.debug("Submit timer stopped")
 
     def timerStart(self):
         if not self.timer.is_active():
-            self.logger.debug("Submit timer start")
             self.timer.start_timer()
 
     def submit(self, data: dict):
-        self.logger.debug("Submit MUTEX Acquiring...")
         self.submit_mutex.acquire()
-        self.logger.debug("Submit MUTEX Acquired")
         try:
             if "submit_time" not in data:
                 data['submit_time'] = util.now()
@@ -84,5 +83,3 @@ class SubmitBase(object, metaclass=abc.ABCMeta):
             self.timerStart()
         finally:
             self.submit_mutex.release()
-            self.logger.debug("Submit MUTEX Released")
-        self.logger.debug("Submit end.")

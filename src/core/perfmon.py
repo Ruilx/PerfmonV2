@@ -38,6 +38,11 @@ class Perfmon(object):
 
         self.logger = Logger().getLogger(__name__)
 
+    def __del__(self):
+        for task in self.tasks:
+            if isinstance(task, TaskBase):
+                task.reset()
+
     def _parse_perfmon(self, config: dict):
         self.name = util.checkKey("name", config, str, "perfmon")
         self.type = util.checkKey("type", config, str, "perfmon")

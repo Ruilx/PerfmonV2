@@ -86,6 +86,9 @@ class Submitting(object):
 
     def __del__(self):
         self._reset_threads()
+        for submitter in self.submitters:
+            if isinstance(submitter, SubmitBase):
+                submitter.reset()
         self.logger.debug("SUBMIT QUEUE JOINING...")
         self.queue.close()
         self.queue.join_thread()

@@ -102,12 +102,15 @@ class Processing(object):
 
     def _reset_processes(self):
         if self.processes:
+            queue = self.get_queue()
             for name, item in self.processes.items():
                 process = item['process']
                 if isinstance(process, Process):
                     if process.is_alive():
-                        process.kill()
+                        queue.put({"cmd": "quit"})
                         process.terminate()
+                        process.join(5)
+                        process.kill()
                         process.join()
                     process.close()
                     self.logger.debug(f"Process '{process.name}' terminated.")

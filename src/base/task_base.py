@@ -62,6 +62,9 @@ class TaskBase(object, metaclass=abc.ABCMeta):
                 ...
 
     def __del__(self):
+        self.reset()
+
+    def reset(self):
         if isinstance(self.timer, ReentrantTimer):
             if self.timer.is_alive():
                 self.timer.cancel()

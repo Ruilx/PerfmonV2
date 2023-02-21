@@ -75,6 +75,9 @@ def main():
         processing.stop()
         submitting.stop()
 
+    del processing
+    del submitting
+
     logger.info("Stopped, bye.")
 
 
