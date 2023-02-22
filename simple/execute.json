@@ -1,0 +1,27 @@
+{
+  "agent_name": "Execute",
+  "submit": {
+    "type": "print",
+    "device": "stdout",
+    "format": "JsonEachRow"
+  },
+  "process": 1,
+  "perfmon": [
+    {
+      "name": "echo",
+      "type": "shell",
+      "delay": 10,
+      "priority": 10,
+      "tasks": {
+        "method": "execute",
+        "exec": "/bin/echo",
+        "params": [
+          "HELLO, WORLD!"
+        ],
+        "format": null,
+        "expect": "string",
+        "timeout": 8
+      }
+    }
+  ]
+}
