@@ -41,8 +41,8 @@ class ReadFile(TaskBase):
             self.close = "never"
         self.close = util.checkValueEnum(self.close, ("always", "never", "on_exception"), False, "close")
 
-        super().__init__(name, config)
         self.fd = None
+        super().__init__(name, config)
 
     def _checkProcess(self):
         if self.method != "readfile":
@@ -57,11 +57,11 @@ class ReadFile(TaskBase):
     def openFile(self, reset: bool = False):
         if reset and (isinstance(self.fd, io.TextIOWrapper) or not self.fd.closed):
             self.fd.close()
-        if not isinstance(self.fd, io.TextIOWrapper) and self.fd.closed:
+        if not isinstance(self.fd, io.TextIOWrapper) or self.fd.closed:
             self.fd = self.path.open("r", encoding="utf-8")
 
     def closeFile(self):
-        if isinstance(self.fd, io.TextIOWrapper) or not self.fd.closed:
+        if isinstance(self.fd, io.TextIOWrapper) and not self.fd.closed:
             self.fd.close()
 
     def _setup(self):

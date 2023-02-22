@@ -19,7 +19,7 @@ from src.logger import Logger
 
 class Perfmon(object):
     MethodTable = {
-        'readfile': ("ReadFile", "src.task.read_file", "Readfile"),
+        'readfile': ("ReadFile", "src.task.read_file", "ReadFile"),
         'execute': ("Execute", "src.task.execute", "Execute"),
         'dummy': ("Dummy", "src.task.dummy", "Dummy"),
     }
