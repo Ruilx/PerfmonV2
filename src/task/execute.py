@@ -57,7 +57,6 @@ class Execute(TaskBase):
     def _run(self, params: dict):
         command = [self.exec]
         command.extend(self.exec_params)
-        self.logger.debug(f"=======> Running command: {command}")
         self.program = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                         encoding="utf-8")
         if not self.program.stdin.closed:
