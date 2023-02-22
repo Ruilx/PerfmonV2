@@ -26,7 +26,7 @@ class Execute(TaskBase):
 
     def __init__(self, name: str, config: dict):
         self.exec = util.checkKey("exec", config, str, "config")
-        self.params = util.checkKey("params", config, (list, tuple), "config")
+        self.exec_params = util.checkKey("params", config, (list, tuple), "config")
 
         try:
             self.stdin = util.checkKey("stdin", config, str, "config")
@@ -36,7 +36,7 @@ class Execute(TaskBase):
         if not self.exec:
             raise ValueError(f"'execute' task param 'exec' required.")
 
-        for param in self.params:
+        for param in self.exec_params:
             if not isinstance(param, str):
                 raise ValueError("'execute' task param 'param' each list item should be string type, but one of it "
                                  f"founded '{type(param)}'")
@@ -56,7 +56,8 @@ class Execute(TaskBase):
 
     def _run(self, params: dict):
         command = [self.exec]
-        command.extend(self.params)
+        command.extend(self.exec_params)
+        self.logger.debug(f"=======> Running command: {command}")
         self.program = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                         encoding="utf-8")
         if not self.program.stdin.closed:

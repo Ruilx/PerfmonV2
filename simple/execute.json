@@ -16,7 +16,7 @@
         "method": "execute",
         "exec": "/bin/echo",
         "params": [
-          "HELLO, WORLD!"
+          "HELLO, WORLD"
         ],
         "format": null,
         "expect": "string",
