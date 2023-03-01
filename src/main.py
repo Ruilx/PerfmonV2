@@ -59,7 +59,7 @@ def main():
     signal.signal(signal.SIGINT, signal_handle)
     signal.signal(signal.SIGTERM, signal_handle)
 
-    for item in config.getPrefmonItems():
+    for item in config.getPerfmonItems():
         perfmon = Perfmon(config.getAgentName(), item, submitting.get_queue())
         scheduler.register_scheduler(perfmon)
 

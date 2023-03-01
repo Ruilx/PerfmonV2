@@ -8,7 +8,7 @@ class AgentConfig(config_base.ConfigBase):
         super().__init__(filePath)
         assert self.getAgentName(), "Config need 'agent_name' key"
         # assert self.getReportUrl(), "Config need 'report' key"
-        assert self.getPrefmonItems(), "Config need 'perfmon' items"
+        assert self.getPerfmonItems(), "Config need 'perfmon' items"
 
     def getAgentName(self):
         """
@@ -30,7 +30,7 @@ class AgentConfig(config_base.ConfigBase):
     def getSubmitConfig(self):
         return self._findKey("submit")
 
-    def getPrefmonItems(self):
+    def getPerfmonItems(self):
         """
         获得配置文件Perfmon项目
         :return:
