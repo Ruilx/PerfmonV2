@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import time
 import traceback
 from datetime import datetime
@@ -64,3 +65,7 @@ def timestamp():
 
 def now():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def cpuCount():
+    return os.cpu_count()

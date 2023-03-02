@@ -8,8 +8,6 @@ Perfmon V2
 """
 
 import argparse
-import os
-import platform
 import sys
 import signal
 import threading
@@ -38,7 +36,7 @@ def main():
     print(config.getReportUrl())
     process_count = config.getProcessCount()
     if not process_count:
-        process_count = os.cpu_count()
+        process_count = util.cpuCount()
         logger.info(f"Worker count is set to '{process_count}' as CPU count.")
 
     submitting = Submitting(1)
